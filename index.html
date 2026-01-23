@@ -54,7 +54,11 @@ main{
 }
 
 /* 履歴リストも“残り全部使う” */
-#panelHistory #historyList{<span class="cursor">█</span>
+#panelHistory #historyList{<span class="cursor">█</span>/* デカ文字中は min-height 計算を無効化して崩れを減らす */
+body.bigText main{
+  min-height: auto;
+}
+
     }
 
     *{ box-sizing:border-box; }
