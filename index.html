@@ -12,7 +12,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap">
 
-  <style>
+  <style>/* 画面の縦を使い切る（スマホ向け） */
+main{
+  min-height: calc(100dvh - 56px - 92px); /* header分とbottomNav分をだいたい差し引き */
+  display: flex;
+  flex-direction: column;
+}
+
+/* main直下の各セクションを縦に並べるための余白調整 */
+main > section{ flex: 0 0 auto; }
+
+/* パネルを“伸びる箱”にする */
+#panelNow, #panelHistory{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
     :root{
       --paper:#fbfaf7;
       --paper2:#f6f2ea;
@@ -223,7 +239,14 @@
       white-space: pre-wrap;
       font-size: 18px;
       line-height: 1.68;
-      letter-spacing: .01em;
+      letter-spacing: .01em;.result{
+  /* 既存の指定はそのまま */
+  flex: 1 1 auto;
+  min-height: 34vh;     /* お題が短くてもカードがそれなりに大きくなる */
+  display: flex;
+  align-items: center;  /* 短文でも中央寄せで“おみくじ感” */
+}
+
 
       background: rgba(255,255,255,.62);
       border: 1px dashed rgba(185,28,28,.26);
