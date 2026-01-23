@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>真さんぽ神</title>
+  <meta name="theme-color" content="#0f766e" />
+  <style>
+    :root { --bg:#0b1220; --card:#111b2e; --ink:#e7eefc; --muted:#a9b7d1; --accent:#14b8a6; --line:#22314f; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif; background: radial-gradient(1200px 800px at 20% 0%, #122044, var(--bg)); color:var(--ink); }
+    header { padding:18px 16px 8px; position:sticky; top:0; backdrop-filter: blur(10px); background: rgba(11,18,32,.65); border-bottom:1px solid rgba(34,49,79,.6); }
+    h1 { margin:0; font-size:18px; letter-spacing:.02em; }
+    .sub { margin-top:6px; color:var(--muted); font-size:12px; }
+    main { padding:16px; max-width:780px; margin:0 auto; }
+    .grid { display:grid; gap:12px; }
+    .card { background: linear-gradient(180deg, rgba(17,27,46,.95), rgba(17,27,46,.8)); border:1px solid rgba(34,49,79,.8); border-radius:16px; padding:14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .result { font-size:18px; line-height:1.55; white-space:pre-wrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .chip { font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(34,49,79,.9); color:var(--muted); background: rgba(34,49,79,.2); }
+    .btnrow { display:flex; gap:10px; flex-wrap:wrap; }
+    button { appearance:none; border:0; border-radius:14px; padding:12px 14px; font-weight:700; cursor:pointer; }
+    .primary { background: linear-gradient(180deg, #19c7b2, #0ea5a2); color:#03221f; }
+    .ghost { background: rgba(34,49,79,.25); color:var(--ink); border:1px solid rgba(34,49,79,.8); }
+    .danger { background: rgba(239,68,68,.14); color:#fecaca; border:1px solid rgba(239,68,68,.35); }
+    .list { margin:0; padding:0; list-style:none; }
+    .item { padding:12px 10px; border-top:1px solid rgba(34,49,79,.65); }
+    .item:first-child { border-top:0; }
+    .meta { font-size:12px; color:var(--muted); margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; }
+    footer { color:var(--muted); font-size:12px; padding:12px 2px; text-align:center; }
+    a { color: #7dd3fc; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>真さんぽ神</h1>
+  <div class="sub">電車系30%／検索あり50%寄せ／履歴20件（端末内保存）</div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="btnrow">
+      <button class="primary" id="btnRoll">お題を引く</button>
+      <button class="ghost" id="btnHistory">履歴を表示/非表示</button>
+      <button class="danger" id="btnClear">履歴を全削除</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="result" id="result">まだお題がありません。「お題を引く」を押してください。</div>
+    <div class="chips" id="chips"></div>
+    <div class="sub" style="margin-top:10px;">
+      地図は使いません。必要ならGoogleマップ等で自分で検索してOK。
+    </div>
+  </section>
+
+  <section class="card" id="historyCard" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 style="margin:0;font-size:14px;">履歴（直近20件）</h2>
+      <div class="sub" id="historyHint"></div>
+    </div>
+    <ul class="list" id="historyList"></ul>
+  </section>
+
+  <footer>ローカル保存：この端末のブラウザに履歴を保存します</footer>
+</main>
+
+<script>
+/** ===== データ（MVP：あとでいくらでも増やせます） ===== */
+const WHERE = [
+  // train (約30%を狙うのは抽選ロジック側)
+  {id:"w_train_1_walk_10_straight", text:"電車で1駅移動して降りて、まっすぐ10分歩いて", isTrain:true, difficulty:2},
+  {id:"w_train_2_walk_w_10", text:"電車で2駅移動して降りて、西に10分歩いて", isTrain:true, difficulty:2},
+  {id:"w_train_2_walk_e_10", text:"電車で2駅移動して降りて、東に10分歩いて", isTrain:true, difficulty:2},
+  {id:"w_train_2_walk_n_12", text:"電車で2駅移動して降りて、北に12分歩いて", isTrain:true, difficulty:3},
+  {id:"w_train_2_walk_s_12", text:"電車で2駅移動して降りて、南に12分歩いて", isTrain:true, difficulty:3},
+  {id:"w_train_3_walk_8", text:"電車で3駅移動して降りて、8分だけ歩いて", isTrain:true, difficulty:3},
+
+  // non-train
+  {id:"w_walk_w_10", text:"いまいる場所から西に10分歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_e_10", text:"いまいる場所から東に10分歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_n_10", text:"いまいる場所から北に10分歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_s_10", text:"いまいる場所から南に10分歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_5", text:"いまいる場所から5分だけ歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_8", text:"いまいる場所から8分だけ歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_12", text:"いまいる場所から12分だけ歩いて", isTrain:false, difficulty:1},
+  {id:"w_walk_15", text:"いまいる場所から15分だけ歩いて", isTrain:false, difficulty:2},
+  {id:"w_main_road_12_no_turn", text:"大通りを選んで12分、曲がらず歩いて", isTrain:false, difficulty:2},
+  {id:"w_backstreet_12", text:"裏道を選んで12分、なるべく信号を避けて歩いて", isTrain:false, difficulty:2},
+  {id:"w_no_right_10", text:"右折禁止で10分歩いて（左か直進だけ）", isTrain:false, difficulty:3},
+  {id:"w_no_left_10", text:"左折禁止で10分歩いて（右か直進だけ）", isTrain:false, difficulty:3},
+  {id:"w_find_park_then_start", text:"近くの公園を1つ探して、入口から始めて", isTrain:false, difficulty:2},
+  {id:"w_find_shrine_then_start", text:"近くの神社/寺を1つ探して、入口から始めて", isTrain:false, difficulty:2},
+  {id:"w_find_shotengai_then_start", text:"近くの商店街を探して、入口っぽい所から始めて", isTrain:false, difficulty:3},
+  {id:"w_find_cafe_then_start", text:"近くの喫茶店/カフェを探して、店の前から始めて", isTrain:false, difficulty:2},
+  {id:"w_find_bookstore_then_start", text:"近くの本屋を探して、入口から始めて", isTrain:false, difficulty:2},
+  {id:"w_find_sentou_outside_then_start", text:"近くの銭湯を探して、外観を見たところから始めて", isTrain:false, difficulty:4},
+];
+
+const WHAT = [
+  // needSearch=false
+  {id:"a_photo_red_3", text:"「赤」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low", tags:["photo"]},
+  {id:"a_photo_blue_3", text:"「青」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low", tags:["photo"]},
+  {id:"a_photo_shadow_3", text:"「影」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low", tags:["photo"]},
+  {id:"a_photo_reflection_2", text:"反射（ガラス/水たまり）を狙って写真を2枚撮る", needSearch:false, difficulty:2, timeRisk:"low", tags:["photo"]},
+  {id:"a_photo_text_5", text:"文字が入った風景を写真で5枚集める", needSearch:false, difficulty:2, timeRisk:"low", tags:["photo"]},
+  {id:"a_buy_drink_unusual", text:"自販機で「普段絶対買わない飲み物」を1本買う", needSearch:false, difficulty:2, timeRisk:"low", tags:["shopping","food"]},
+  {id:"a_buy_snack_unusual", text:"コンビニで「普段買わないお菓子」を1つ買う", needSearch:false, difficulty:2, timeRisk:"low", tags:["shopping","food"]},
+  {id:"a_100yen_weird_item", text:"100均で「役に立つか怪しい」小物を1つ探す（買っても買わなくてもOK）", needSearch:false, difficulty:3, timeRisk:"low", tags:["shopping"]},
+  {id:"a_no_earphones_10", text:"10分間、イヤホン無しで歩く", needSearch:false, difficulty:1, timeRisk:"low", tags:["relax"]},
+  {id:"a_find_quiet_1min", text:"いちばん静かな場所を探して1分止まる", needSearch:false, difficulty:2, timeRisk:"low", tags:["relax"]},
+
+  // needSearch=true
+  {id:"b_food_nearest_meal", text:"いちばん近い飲食店で食事する（ジャンル自由）", needSearch:true, difficulty:2, timeRisk:"mid", tags:["food"]},
+  {id:"b_food_nearest_cafe", text:"いちばん近いカフェ/喫茶店で1杯飲む", needSearch:true, difficulty:2, timeRisk:"mid", tags:["food","cafe"]},
+  {id:"b_food_bakery_1", text:"近くのパン屋を探してパンを1個買う", needSearch:true, difficulty:2, timeRisk:"mid", tags:["food","shopping"]},
+  {id:"b_food_wagashi_1", text:"近くの和菓子屋を探して和菓子を1個買う", needSearch:true, difficulty:3, timeRisk:"mid", tags:["food","shopping"]},
+  {id:"b_food_teishoku", text:"近くの定食屋で日替わりを頼む", needSearch:true, difficulty:3, timeRisk:"mid", tags:["food"]},
+  {id:"b_food_nonchain", text:"チェーンじゃない店を探して入る", needSearch:true, difficulty:4, timeRisk:"mid", tags:["food","challenge"]},
+  {id:"b_photo_park_season", text:"近くの公園へ行って季節っぽい写真を撮る", needSearch:true, difficulty:2, timeRisk:"mid", tags:["photo"]},
+  {id:"b_photo_shrine_gate", text:"近くの神社/寺へ行って入口（鳥居/山門）を撮る", needSearch:true, difficulty:3, timeRisk:"mid", tags:["photo"]},
+  {id:"b_shop_recycle", text:"近くの古本屋/リサイクルショップに入る", needSearch:true, difficulty:3, timeRisk:"mid", tags:["shopping","challenge"]},
+  {id:"b_sentou_optional", text:"近くの銭湯を探して、入るかどうかは気分で決める（外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"high", tags:["sentou","relax"]},
+];
+
+/** ===== 設定 ===== */
+const TRAIN_RATIO = 0.30;
+const NEED_SEARCH_TARGET = 0.50;
+const HISTORY_MAX = 20;
+
+/** ===== 永続化 ===== */
+const KEY = "shin_sanpo_gami_history_v1";
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function saveHistory(list) {
+  localStorage.setItem(KEY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+}
+
+/** ===== ユーティリティ ===== */
+const rng = (n) => Math.floor(Math.random() * n);
+function pickOne(arr) { return arr[rng(arr.length)]; }
+
+function recentNeedSearchRatio(hist) {
+  const recent = hist.slice(0, 10);
+  if (recent.length === 0) return 0.5;
+  const need = recent.filter(x => x.what_need_search === true).length;
+  return need / recent.length;
+}
+
+function recentHasHigh(hist) {
+  const recent = hist.slice(0, 5);
+  return recent.some(x => x.what_time_risk === "high");
+}
+
+function diffCounts(hist) {
+  const recent = hist.slice(0, 10);
+  const m = new Map();
+  for (const x of recent) {
+    const d = Number(x.what_difficulty || 1);
+    m.set(d, (m.get(d) || 0) + 1);
+  }
+  return m;
+}
+
+/** ===== 抽選ロジック ===== */
+function pickWhere(hist) {
+  const trainPool = WHERE.filter(w => w.isTrain);
+  const nonTrainPool = WHERE.filter(w => !w.isTrain);
+  const useTrain = trainPool.length > 0 && Math.random() < TRAIN_RATIO;
+  const pool = useTrain ? trainPool : nonTrainPool;
+  return pickOne(pool);
+}
+
+function pickWhat(hist) {
+  const r = recentNeedSearchRatio(hist);
+  const wantNeedSearch = r < NEED_SEARCH_TARGET;
+
+  let pool = WHAT.filter(w => w.needSearch === wantNeedSearch);
+  if (pool.length === 0) pool = WHAT.slice();
+
+  // highクールダウン
+  if (recentHasHigh(hist)) {
+    const filtered = pool.filter(w => w.timeRisk !== "high");
+    if (filtered.length > 0) pool = filtered;
+  }
+
+  // difficulty偏り補正（少ないdifficultyを優先する簡易ソート）
+  const counts = diffCounts(hist);
+  pool = pool.slice().sort((a,b) => (counts.get(a.difficulty)||0) - (counts.get(b.difficulty)||0));
+  return pool[0];
+}
+
+/** ===== UI ===== */
+const $result = document.getElementById("result");
+const $chips = document.getElementById("chips");
+const $historyCard = document.getElementById("historyCard");
+const $historyList = document.getElementById("historyList");
+const $historyHint = document.getElementById("historyHint");
+
+let history = loadHistory();
+
+function renderHistory() {
+  const list = history.slice(0, HISTORY_MAX);
+  $historyHint.textContent = list.length ? `保存: ${list.length}件` : "保存なし";
+
+  $historyList.innerHTML = "";
+  for (const e of list) {
+    const li = document.createElement("li");
+    li.className = "item";
+    const title = document.createElement("div");
+    title.textContent = `${e.where_text}\n→ ${e.what_text}`;
+    title.style.whiteSpace = "pre-wrap";
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.innerHTML = `
+      <span>検索:${e.what_need_search ? "あり" : "なし"}</span>
+      <span>難易度:${e.what_difficulty}</span>
+      <span>電車:${e.where_is_train ? "あり" : "なし"}</span>
+      <span>リスク:${e.what_time_risk}</span>
+    `;
+    li.appendChild(title);
+    li.appendChild(meta);
+    $historyList.appendChild(li);
+  }
+}
+
+function renderChips(where, what) {
+  const chips = [
+    `検索: ${what.needSearch ? "あり" : "なし"}`,
+    `難易度: ${what.difficulty}`,
+    `電車: ${where.isTrain ? "あり" : "なし"}`,
+    `時間リスク: ${what.timeRisk}`,
+  ];
+  $chips.innerHTML = chips.map(x => `<span class="chip">${x}</span>`).join("");
+}
+
+function roll() {
+  const where = pickWhere(history);
+  const what = pickWhat(history);
+
+  $result.textContent = `${where.text}\n→ ${what.text}`;
+  renderChips(where, what);
+
+  const item = {
+    where_id: where.id,
+    where_text: where.text,
+    where_is_train: where.isTrain,
+    what_id: what.id,
+    what_text: what.text,
+    what_need_search: what.needSearch,
+    what_difficulty: what.difficulty,
+    what_time_risk: what.timeRisk,
+    created_at: new Date().toISOString()
+  };
+
+  history.unshift(item);
+  history = history.slice(0, HISTORY_MAX);
+  saveHistory(history);
+  renderHistory();
+}
+
+document.getElementById("btnRoll").addEventListener("click", roll);
+
+document.getElementById("btnHistory").addEventListener("click", () => {
+  $historyCard.style.display = ($historyCard.style.display === "none") ? "block" : "none";
+  renderHistory();
+});
+
+document.getElementById("btnClear").addEventListener("click", () => {
+  if (!confirm("履歴を全削除します。よろしいですか？")) return;
+  history = [];
+  saveHistory(history);
+  renderHistory();
+  $result.textContent = "履歴を削除しました。「お題を引く」を押してください。";
+  $chips.innerHTML = "";
+});
+
+// 初期表示
+renderHistory();
+</script>
+</body>
+</html>
