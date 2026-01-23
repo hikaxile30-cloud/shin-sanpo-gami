@@ -29,7 +29,32 @@
       --radius: 18px;
 
       /* でか文字モード：scale倍率（5倍級） */
-      --zoom: 1;
+      --zoom: 1;/* ====== 縦画面いっぱいに埋める修正 ====== */
+
+/* mainが縦いっぱいになるように（header+bottomNavの分だけ引く） */
+main{
+  min-height: calc(100dvh - 70px - 110px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* panelを“伸びる箱”にする（display:none→flex切替でも崩れない） */
+#panelNow, #panelHistory{
+  flex: 1 1 auto;
+  min-height: 0;               /* overflowが効くために重要 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* お題表示を“残り全部使う” */
+#panelNow .result{
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: flex-start;     /* 中央寄せが嫌なら上寄せ。中央が良ければ center に */
+}
+
+/* 履歴リストも“残り全部使う” */
+#panelHistory #historyList{<span class="cursor">█</span>
     }
 
     *{ box-sizing:border-box; }
