@@ -12,7 +12,34 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap">
 
-  <style>/* 画面の縦を使い切る（スマホ向け） */
+  <style>/* タイトル・見出し */
+h1{ font-size: 22px; }
+
+/* 上の説明・ヒント類 */
+.sub{ font-size: 14px; }
+.omikujiText .name{ font-size: 14px; }
+.omikujiText .line{ font-size: 18px; line-height: 1.55; }
+.omikujiText .hint{ font-size: 14px; }
+
+/* お題（ここがメイン） */
+.result{ font-size: 22px; line-height: 1.7; }
+
+/* チップ（検索/難易度など） */
+.chip{ font-size: 14px; padding: 9px 12px; }
+
+/* ボタン */
+button{ font-size: 18px; padding: 14px 16px; }
+
+/* 履歴 */
+.meta{ font-size: 14px; }
+:root{
+  font-size: 18px; /* 全体の基準を上げる（16→18相当） */
+}
+
+body{
+  font-size: 18px; /* 念のため上書き */
+}
+/* 画面の縦を使い切る（スマホ向け） */
 main{
   min-height: calc(100dvh - 56px - 92px); /* header分とbottomNav分をだいたい差し引き */
   display: flex;
