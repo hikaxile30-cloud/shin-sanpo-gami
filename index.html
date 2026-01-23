@@ -213,6 +213,13 @@
       align-items: flex-start;
     }
 
+    /* 神託“発光” */
+    .glow{
+      box-shadow: 0 0 0 4px rgba(185,28,28,.10), var(--shadow);
+      border-color: rgba(185,28,28,.36);
+      transition: box-shadow .25s ease, border-color .25s ease;
+    }
+
     .reveal{ opacity: 0; transform: translateY(10px); filter: blur(8px); }
     .reveal.show{
       opacity: 1;
@@ -254,7 +261,10 @@
       letter-spacing:.02em;
       font-size: 18px;
       min-height: 56px;
+      transform: translateZ(0);
     }
+    button:active{ transform: scale(.98); }
+
     .primary{
       background: linear-gradient(180deg, #ef4444, #b91c1c);
       color: #fff7f7;
@@ -359,7 +369,7 @@
     }
     .toast.show{ opacity: 1; }
 
-    /* ===== 超デカ文字（2倍級）モード（必要ならON） ===== */
+    /* ===== 超デカ文字モード（必要ならON） ===== */
     body.bigText{ --zoom: 2.5; }
     body.bigText main{
       transform: scale(var(--zoom));
@@ -411,7 +421,8 @@
 
     <div class="small">
       地図は使いません。必要ならGoogleマップ等で自分で検索してOK。<br>
-      電車系30%／検索あり50%寄せ／銭湯はたまに（連続しにくい）
+      電車系30%／検索あり50%寄せ／銭湯はたまに（連続しにくい）<br>
+      ※「何をする」は直近20件の同一IDを完全除外（母数が少ない場合のみ救済あり）
     </div>
   </section>
 
@@ -449,9 +460,7 @@ const HISTORY_MAX = 20;
 const KEY = "shin_sanpo_gami_history_bigpack_v1";
 const KEY_BIG = "shin_sanpo_gami_bigtext_on";
 
-/** ========= WHERE（どこで）大量版 =========
- * 方針：徒歩5〜15分中心＋電車雰囲気（30%）＋検索目的地＋制約プレイ少量
- */
+/** ========= WHERE（あなたの現行データをそのまま） ========= */
 const WHERE = [
   // --- train
   {id:"w_train_1_walk_10_straight", text:"電車で1駅移動して降りて、まっすぐ10分歩いて", isTrain:true, difficulty:2},
@@ -526,13 +535,17 @@ const WHERE = [
   {id:"w_search_find_bakery_start2", text:"近くのパン屋を探して、店の前から始めて", isTrain:false, difficulty:2},
   {id:"w_search_find_shrine2_start", text:"近くの神社/寺を探して、入口から始めて", isTrain:false, difficulty:2},
   {id:"w_search_find_bookstore2_start", text:"近くの本屋を探して、入口から始めて", isTrain:false, difficulty:2},
+
+  /* --- bus (A案：2〜4停留所) --- */
+  {id:"w_bus_2stops_walk_10", text:"バスで2停留所乗って降りて、10分歩いて", isTrain:false, difficulty:3},
+  {id:"w_bus_3stops_walk_12", text:"バスで3停留所乗って降りて、12分歩いて", isTrain:false, difficulty:3},
+  {id:"w_bus_4stops_walk_8",  text:"バスで4停留所乗って降りて、8分歩いて",  isTrain:false, difficulty:4},
+  {id:"w_bus_2stops_quiet_10", text:"バスで2停留所→降りたら静かな方へ10分歩いて", isTrain:false, difficulty:3},
+  {id:"w_bus_3stops_shop_10",  text:"バスで3停留所→降りたら店が多そうな方へ10分歩いて", isTrain:false, difficulty:3},
 ];
 
-/** ========= WHAT（なにをする）大量版 =========
- * 方針：検索なし/ありがほぼ均等。飲食/買い物/写真/観察をバランスよく。
- */
+/** ========= WHAT（あなたの現行データをそのまま） ========= */
 const WHAT = [
-  // --- no search: photo
   {id:"a_photo_red_3", text:"「赤」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
   {id:"a_photo_blue_3", text:"「青」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
   {id:"a_photo_shadow_3", text:"「影」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
@@ -552,7 +565,6 @@ const WHAT = [
   {id:"a_photo_shadow_long", text:"影が長い場所を探して写真を1枚撮る", needSearch:false, difficulty:2, timeRisk:"low"},
   {id:"a_photo_stairs_2", text:"階段を2つ撮る（上から/下からのどちらか）", needSearch:false, difficulty:2, timeRisk:"low"},
 
-  // --- no search: shopping
   {id:"a_buy_drink_unusual", text:"自販機で「普段絶対買わない飲み物」を1本買う", needSearch:false, difficulty:2, timeRisk:"low"},
   {id:"a_buy_snack_unusual", text:"コンビニで「普段買わないお菓子」を1つ買う", needSearch:false, difficulty:2, timeRisk:"low"},
   {id:"a_shop_drink_new", text:"コンビニで“見たことない飲み物”を1本買う", needSearch:false, difficulty:2, timeRisk:"low"},
@@ -564,7 +576,6 @@ const WHAT = [
   {id:"a_shop_omiyage_500", text:"500円以内で“今日の記念”を1つ選ぶ（買う/買わない自由）", needSearch:false, difficulty:2, timeRisk:"low"},
   {id:"a_shop_stationery_view", text:"文房具コーナーで“変な付箋/ペン”を探す（買わなくてOK）", needSearch:false, difficulty:2, timeRisk:"low"},
 
-  // --- no search: observe / act
   {id:"a_observe_cute_sign", text:"今日いちばん“かわいい看板”を決める", needSearch:false, difficulty:1, timeRisk:"low"},
   {id:"a_observe_strong_shopname", text:"今日いちばん“強そうな店名”を1つ見つける", needSearch:false, difficulty:1, timeRisk:"low"},
   {id:"a_observe_best_smell", text:"今日いちばん“いい匂いがした場所”を1つ決める", needSearch:false, difficulty:1, timeRisk:"low"},
@@ -575,7 +586,6 @@ const WHAT = [
   {id:"a_rest_breath_1", text:"1分だけ立ち止まって深呼吸する", needSearch:false, difficulty:1, timeRisk:"low"},
   {id:"a_route_detour_one", text:"いつもなら行かない道を1本だけ通ってみる（安全な範囲）", needSearch:false, difficulty:2, timeRisk:"mid"},
 
-  // --- search: food (cafe/sweets & meals)
   {id:"b_food_nearest_meal", text:"いちばん近い飲食店で食事する（ジャンル自由）", needSearch:true, difficulty:2, timeRisk:"mid"},
   {id:"b_food_nearest_cafe", text:"いちばん近いカフェ/喫茶店で1杯飲む", needSearch:true, difficulty:2, timeRisk:"mid"},
   {id:"b_food_bakery_1", text:"近くのパン屋を探してパンを1個買う", needSearch:true, difficulty:2, timeRisk:"mid"},
@@ -592,7 +602,6 @@ const WHAT = [
   {id:"b_food_nonchain_challenge", text:"チェーンじゃない店を1つ探して入る（無理なら外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"mid"},
   {id:"b_food_seasonal", text:"季節限定/期間限定っぽいものを1つ探して食べる（飲み物でもOK）", needSearch:true, difficulty:4, timeRisk:"mid"},
 
-  // --- search: shopping
   {id:"b_shop_bookstore_unknown", text:"近くの本屋で「知らない分野」の本を1冊探す（購入は任意）", needSearch:true, difficulty:2, timeRisk:"mid"},
   {id:"b_shop_recycle", text:"近くの古本屋/リサイクルショップに入る", needSearch:true, difficulty:3, timeRisk:"mid"},
   {id:"b_shop_zakka", text:"近くの雑貨屋で小さなお土産を探す（購入は任意）", needSearch:true, difficulty:3, timeRisk:"mid"},
@@ -603,7 +612,6 @@ const WHAT = [
   {id:"b_shop_flower_view", text:"近くの花屋で“季節っぽい花”を眺める（買わなくてOK）", needSearch:true, difficulty:2, timeRisk:"mid"},
   {id:"b_shop_reuse_walkthrough", text:"近くの古本屋/リサイクルショップに入って1周する（買わなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
 
-  // --- search: photo spots
   {id:"b_photo_park_season", text:"近くの公園へ行って季節っぽい写真を撮る", needSearch:true, difficulty:2, timeRisk:"mid"},
   {id:"b_photo_water_reflection", text:"近くの川/水辺へ行って反射の写真を撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
   {id:"b_photo_shrine_gate", text:"近くの神社/寺へ行って入口（鳥居/山門）を撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
@@ -614,7 +622,6 @@ const WHAT = [
   {id:"b_photo_shotengai_signs", text:"近くの商店街で“看板”を10枚撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
   {id:"b_photo_shotengai_letters", text:"近くの商店街に行って“文字の写真”を10枚撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
 
-  // --- rare: sentou (cooldown already handled)
   {id:"b_sentou_optional", text:"近くの銭湯を探して、入るかどうかは気分で決める（外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"high"},
 ];
 
@@ -668,21 +675,107 @@ function pickWhere(hist){
   const pool = useTrain ? trainPool : nonTrainPool;
   return pickOne(pool);
 }
-function pickWhat(hist){
-  const r = recentNeedSearchRatio(hist);
-  const wantNeedSearch = r < NEED_SEARCH_TARGET;
 
-  let pool = WHAT.filter(w => w.needSearch === wantNeedSearch);
+/** ★直近20件のwhat_idは完全除外★ */
+function pickWhat(hist){
+  const h = Array.isArray(hist) ? hist : [];
+
+  // 直近20件の what_id を「完全除外」
+  const EXCLUDE_N = 20;
+  const recent = h.slice(0, EXCLUDE_N);
+  const ban = new Set(recent.map(x => x?.what_id).filter(Boolean));
+
+  // needSearch の直近比率を見て、50:50に寄せる
+  const r = recentNeedSearchRatio(h);
+  const wantNeedSearch = (r < NEED_SEARCH_TARGET);
+
+  // まずは望ましい側（検索あり/なし）から候補を作る（banは必ず適用）
+  let pool = WHAT.filter(w => w.needSearch === wantNeedSearch && !ban.has(w.id));
+
+  // 候補が少なすぎる場合は、反対側も含めて救済（banは維持＝完全除外）
+  if(pool.length < 8){
+    pool = WHAT.filter(w => !ban.has(w.id));
+  }
+
+  // それでも0なら（母数不足）段階的に緩める：詰み防止のみ
+  if(pool.length === 0){
+    const ban15 = new Set(h.slice(0, 15).map(x => x?.what_id).filter(Boolean));
+    pool = WHAT.filter(w => !ban15.has(w.id));
+  }
   if(pool.length === 0) pool = WHAT.slice();
 
-  if(recentHasHigh(hist)){
+  // high が直近に出ていたら避ける（方針維持）
+  if(recentHasHigh(h)){
     const filtered = pool.filter(w => w.timeRisk !== "high");
     if(filtered.length > 0) pool = filtered;
   }
 
-  const counts = diffCounts(hist);
-  pool = pool.slice().sort((a,b) => (counts.get(a.difficulty)||0) - (counts.get(b.difficulty)||0));
-  return pool[0];
+  // 難易度の偏り補正：少ないdifficultyほど出やすい → 上位10からランダム
+  const counts = diffCounts(h);
+  const sorted = pool.slice().sort((a,b) => (counts.get(a.difficulty)||0) - (counts.get(b.difficulty)||0));
+  const topK = sorted.slice(0, Math.min(10, sorted.length));
+  return pickOne(topK);
+}
+
+/** ========= 紙吹雪（外部ライブラリなし） ========= */
+function confettiBurst(){
+  const n = 90;
+  const root = document.createElement("div");
+  root.style.position = "fixed";
+  root.style.left = "0";
+  root.style.top = "0";
+  root.style.width = "100%";
+  root.style.height = "100%";
+  root.style.pointerEvents = "none";
+  root.style.zIndex = "9999";
+  document.body.appendChild(root);
+
+  const colors = ["#b91c1c", "#ef4444", "#b45309", "#f59e0b", "#111827", "#ffffff"];
+  const cx = window.innerWidth * 0.5;
+  const cy = window.innerHeight * 0.28;
+
+  for(let i=0;i<n;i++){
+    const p = document.createElement("i");
+    const size = 6 + Math.random()*8;
+    const angle = (Math.random()*Math.PI*2);
+    const power = 6 + Math.random()*10;
+
+    p.style.position = "absolute";
+    p.style.left = cx + "px";
+    p.style.top = cy + "px";
+    p.style.width = size + "px";
+    p.style.height = (size*0.6) + "px";
+    p.style.background = colors[(Math.random()*colors.length)|0];
+    p.style.borderRadius = "2px";
+    p.style.boxShadow = "0 6px 18px rgba(17,24,39,.12)";
+    p.style.transform = `translate(-50%,-50%) rotate(${Math.random()*180}deg)`;
+    p.style.willChange = "transform, opacity";
+    root.appendChild(p);
+
+    const vx = Math.cos(angle) * power * (0.7 + Math.random()*0.6);
+    const vy = Math.sin(angle) * power * (0.6 + Math.random()*0.8) - (10 + Math.random()*8);
+    const spin = (Math.random() < 0.5 ? -1 : 1) * (220 + Math.random()*440);
+
+    const life = 900 + Math.random()*700;
+    const start = performance.now();
+
+    const tick = (t) => {
+      const dt = t - start;
+      const k = Math.min(1, dt / life);
+
+      // 重力
+      const g = 0.028 * dt * dt;
+      const x = vx * dt;
+      const y = vy * dt + g;
+
+      p.style.opacity = String(1 - k);
+      p.style.transform = `translate(${x}px, ${y}px) rotate(${spin*k}deg)`;
+      if(k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  setTimeout(() => root.remove(), 2000);
 }
 
 /** ========= UI ========= */
@@ -760,6 +853,10 @@ function revealResult(){
     requestAnimationFrame(() => $result.classList.add("show"));
   });
 }
+function flashResult(){
+  $result.classList.add("glow");
+  setTimeout(() => $result.classList.remove("glow"), 420);
+}
 function roll(kind){
   const where = pickWhere(history);
   const what = pickWhat(history);
@@ -767,6 +864,7 @@ function roll(kind){
   $result.textContent = `${where.text}\n→ ${what.text}`;
   renderChips(where, what);
   revealResult();
+  flashResult();
 
   const item = {
     where_id: where.id,
@@ -799,6 +897,7 @@ function roll(kind){
   ];
   oracleSay(pickOne(lines), pickOne(hints));
   toast(kind === "reroll" ? "引き直し" : "神託！");
+  confettiBurst(); /* ←紙吹雪 */
   setTab("now");
 }
 
