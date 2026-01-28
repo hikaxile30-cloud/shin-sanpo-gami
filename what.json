@@ -16,7 +16,7 @@
   {"id":"a_photo_square_5","text":"四角くてカッコいいいものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_triangle_5","text":"御当地っぽいものを5個集める（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_pattern_5","text":"模様があるもの（ドット/ストライプ/格子）を5種類集める（写真OK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
-  {"id":"a_photo_texture_5","text":しょうもない写真を5つ集めて良い感じの写真を合成してつくる","needSearch":false,"difficulty":3,"timeRisk":"mid"},
+  {"id":"a_photo_texture_5","text":しょうもない写真を5つ撮って合成写真をつくる","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_door_3","text":"店のドアを3つ撮る（家じゃなく“店”優先）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_window_3","text":"窓に写った自分を撮る（キメ顔で）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_stairs_2","text":"エモい雰囲気の階段を探して撮る（上から/下からどちらか）","needSearch":false,"difficulty":2,"timeRisk":"low"},
