@@ -214,23 +214,72 @@ const WHAT = [
 
   {id:"b_sentou_optional", text:"近くの銭湯を探して、入るかどうかは気分で決める（外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"high"},
 ];
+/* ========= CONFIG (bus ON) ========= */
+const BUS_RATIO = 0.15; // ← 0.15 ON（バス枠）
+/* TRAIN_RATIO は PART1/3 側の const TRAIN_RATIO = 0.30 を使用 */
 
-/* ====== 抽選関数 ====== */
-function pickWhere(hist){
-  const trainPool = WHERE.filter(w => w.isTrain);
-  const nonTrainPool = WHERE.filter(w => !w.isTrain);
-  const useTrain = trainPool.length > 0 && Math.random() < TRAIN_RATIO;
-  const pool = useTrain ? trainPool : nonTrainPool;
-  return pickOne(pool);
+/* ========= WHAT (例: 200) =========
+   ※ここは「すでにあなたのWHAT 200件が用意済み」という前提で、
+   もし未投入なら、ここに WHAT 配列（200件）を丸ごと入れてください。
+   すでにPART3冒頭に WHAT があるなら、このコメント～WHAT定義を削除してOK。
+*/
+const WHAT = [
+  /* --- 検索なし（ここは例。あなたの200件版に差し替え推奨） --- */
+  {id:"a_photo_1", text:"気になったものを1枚写真に撮る", needSearch:false, difficulty:1, timeRisk:"low"},
+  {id:"a_observe_best_font", text:"今日いちばん良いフォントの看板を決める", needSearch:false, difficulty:1, timeRisk:"low"},
+  {id:"a_roleplay_detective", text:"探偵ごっこ：怪しい（面白い）店を1つ“発見”する", needSearch:false, difficulty:2, timeRisk:"low"},
+  {id:"a_buy_drink_unusual", text:"自販機で「普段絶対買わない飲み物」を1本買う", needSearch:false, difficulty:2, timeRisk:"low"},
+
+  /* --- 検索あり（ここは例。あなたの200件版に差し替え推奨） --- */
+  {id:"b_food_nearest_cafe", text:"いちばん近いカフェ/喫茶店で1杯飲む", needSearch:true, difficulty:2, timeRisk:"mid"},
+  {id:"b_photo_park_season", text:"近くの公園へ行って季節っぽい写真を撮る", needSearch:true, difficulty:2, timeRisk:"mid"},
+  {id:"b_shop_recycle", text:"近くの古本屋/リサイクルショップに入る", needSearch:true, difficulty:3, timeRisk:"mid"},
+  {id:"b_sentou_optional", text:"近くの銭湯を探して、入るかどうかは気分で決める（外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"high"},
+];
+
+/* ========= WHERE分類補助 =========
+  isTrain に加えて、id/textに "bus" を含むものをバス扱いにします。
+  （PART2/3 のWHEREに bus系idが含まれている前提。例: w_bus_...）
+*/
+function isBusWhere(w){
+  if(!w) return false;
+  const s = (w.id || "") + " " + (w.text || "");
+  return /\bbus\b/i.test(s) || s.includes("バス");
 }
 
-/* 直近20件 完全除外（候補ゼロ時のみ除外15に緩める） */
+/* ========= pickWhere (train 0.30 / bus 0.15 / rest walk) ========= */
+function pickWhere(hist){
+  const trainPool = WHERE.filter(w => w.isTrain);
+  const busPool   = WHERE.filter(w => !w.isTrain && isBusWhere(w));
+  const walkPool  = WHERE.filter(w => !w.isTrain && !isBusWhere(w));
+
+  const r = Math.random();
+
+  // 優先順位: 電車 → バス → 徒歩（比率で分岐）
+  if(trainPool.length > 0 && r < TRAIN_RATIO){
+    return pickOne(trainPool);
+  }
+
+  // trainを外した残り領域で bus を 0.15 ぶん確保
+  const busGate = TRAIN_RATIO + BUS_RATIO;
+  if(busPool.length > 0 && r < busGate){
+    return pickOne(busPool);
+  }
+
+  // 残りは徒歩（徒歩が枯れたらnon-train全体）
+  if(walkPool.length > 0) return pickOne(walkPool);
+  const nonTrainPool = WHERE.filter(w => !w.isTrain);
+  return pickOne(nonTrainPool.length ? nonTrainPool : WHERE);
+}
+
+/* ========= pickWhat: 直近20件 what_id 完全除外（A救済: 0件時だけ15に緩め） ========= */
 function pickWhat(hist){
   const h = Array.isArray(hist) ? hist : [];
-
   const EXCLUDE_N = 20;
+
   const ban20 = new Set(h.slice(0, EXCLUDE_N).map(x => x?.what_id).filter(Boolean));
 
+  // needSearch を 50:50 に寄せる（直近比率が低ければ needSearch:true を優先）
   const r = recentNeedSearchRatio(h);
   const wantNeedSearch = (r < NEED_SEARCH_TARGET);
 
@@ -239,29 +288,30 @@ function pickWhat(hist){
     pool = WHAT.filter(w => !ban20.has(w.id));
   }
 
-  // A救済：候補ゼロの時だけ15に緩める（それでもダメなら最後に全体）
+  // A救済: 候補ゼロの時だけ除外を15件に緩める
   if(pool.length === 0){
     const ban15 = new Set(h.slice(0, 15).map(x => x?.what_id).filter(Boolean));
     pool = WHAT.filter(w => !ban15.has(w.id));
   }
   if(pool.length === 0) pool = WHAT.slice();
 
+  // highが続いてるなら high を避ける（残るなら）
   if(recentHasHigh(h)){
     const filtered = pool.filter(w => w.timeRisk !== "high");
     if(filtered.length > 0) pool = filtered;
   }
 
-  // 難易度の偏りを抑えつつ“ランダム感”を残す：上位10からランダム
+  // 難易度の偏り抑制（上位10縛りは残す：あなたの現行方針）
   const counts = diffCounts(h);
   const sorted = pool.slice().sort((a,b) => (counts.get(a.difficulty)||0) - (counts.get(b.difficulty)||0));
   const topK = sorted.slice(0, Math.min(10, sorted.length));
   return pickOne(topK);
 }
 
-/* ====== 実行 ====== */
+/* ========= roll / events / init ========= */
 function roll(kind){
   const where = pickWhere(history);
-  const what = pickWhat(history);
+  const what  = pickWhat(history);
 
   $result.textContent = `${where.text}\n→ ${what.text}`;
   renderChips(where, what);
@@ -271,12 +321,14 @@ function roll(kind){
   const item = {
     where_id: where.id,
     where_text: where.text,
-    where_is_train: where.isTrain,
+    where_is_train: !!where.isTrain,
+
     what_id: what.id,
     what_text: what.text,
-    what_need_search: what.needSearch,
+    what_need_search: !!what.needSearch,
     what_difficulty: what.difficulty,
     what_time_risk: what.timeRisk || "low",
+
     created_at: new Date().toISOString()
   };
 
@@ -296,16 +348,16 @@ function roll(kind){
   ];
   const hints = [
     what.needSearch ? "必要なら検索してよい" : "今日は検索なしでよい",
-    where.isTrain ? "電車を使ってよい" : "徒歩でよい",
+    where.isTrain ? "電車を使ってよい" : "徒歩（またはバス）でよい",
     (what.timeRisk === "high") ? "無理はするな（外観だけでも可）" : "気軽に行け"
   ];
+
   oracleSay(pickOne(lines), pickOne(hints));
   toast(kind === "reroll" ? "引き直し" : "神託！");
-  confettiBurst();
+  confettiBurst();              // 紙吹雪
   setTab("now");
 }
 
-/* ====== デカ文字切替 ====== */
 function setBig(on){
   document.body.classList.toggle("bigText", on);
   $btnBig.textContent = on ? "デカ文字ON" : "デカ文字";
@@ -313,7 +365,7 @@ function setBig(on){
   toast(on ? "デカ文字ON" : "デカ文字OFF");
 }
 
-/* ====== events ====== */
+/* events */
 $("btnRoll").addEventListener("click", () => roll("roll"));
 $("btnReroll").addEventListener("click", () => roll("reroll"));
 $("navRoll").addEventListener("click", () => roll("roll"));
@@ -340,7 +392,6 @@ renderHistory();
 setTab("now");
 setBig(loadBig());
 
-/* close the script/html */
 </script>
 </body>
 </html>
