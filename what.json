@@ -12,10 +12,10 @@
 
   {"id":"a_photo_text_5","text":"文字が入った風景を写真で5枚集める","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_letters_10","text":"文字が写る写真を10枚撮って文章をつくる（看板/注意書きOK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
-  {"id":"a_photo_round_5","text":"丸いものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_square_5","text":"四角いものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_triangle_5","text":"三角っぽいものを5個集める（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_pattern_5","text":"模様（ドット/ストライプ/格子）を5つ集める（写真OK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
+  {"id":"a_photo_round_5","text":"かわいいものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_square_5","text":"四角くてカッコいいいものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_triangle_5","text":"御当地っぽいものを5個集める（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_pattern_5","text":"模様があるもの（ドット/ストライプ/格子）を5種類集める（写真OK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_texture_5","text":しょうもない写真を5つ集めて良い感じの写真を合成してつくる","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_door_3","text":"店のドアを3つ撮る（家じゃなく“店”優先）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_window_3","text":"窓に写った自分を撮る（キメ顔で）","needSearch":false,"difficulty":2,"timeRisk":"low"},
@@ -28,9 +28,9 @@
   {"id":"a_photo_gold_3","text":"金色っぽいものを3つ集めて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_vermilion_white","text":"“朱×白”っぽい写真を1枚撮る（神社感）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_before_after","text":"同じ場所を近い/遠いで2枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_lowangle_1","text":"ローアングルで1枚撮る（安全第一）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_highangle_1","text":"少し高い目線で1枚撮る（無理はしない）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_monochrome_3","text":"モノクロっぽく見える写真を3枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_lowangle_1","text":"ローアングルで良い感じの写真を1枚撮る（安全第一）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_highangle_1","text":"少し高い目線で風景を1枚撮る（無理はしない）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_monochrome_3","text":"モノクロっぽく見える写真を2枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
 
   {"id":"a_observe_cute_sign","text":"今日いちばん“かわいい看板”を決める","needSearch":false,"difficulty":1,"timeRisk":"low"},
   {"id":"a_observe_strong_shopname","text":"今日いちばん“強そうな店名”を1つ見つける","needSearch":false,"difficulty":1,"timeRisk":"low"},
@@ -51,7 +51,7 @@
 
   {"id":"a_walk_no_music_15","text":"15分だけイヤホン無しで歩く","needSearch":false,"difficulty":1,"timeRisk":"low"},
   {"id":"a_walk_silent_5","text":"5分だけ無言で歩いて、音を聞く","needSearch":false,"difficulty":1,"timeRisk":"low"},
-  {"id":"a_walk_stop_3","text":"「止まる→見る→進む」を3回だけ丁寧にやる","needSearch":false,"difficulty":1,"timeRisk":"low"},
+  {"id":"a_walk_stop_3","text":"「止まる→左右を見る→進む」を3回だけ丁寧にやる","needSearch":false,"difficulty":1,"timeRisk":"low"},
   {"id":"a_walk_no_phone_10","text":"10分だけスマホを見ないで歩く","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_walk_detour_one","text":"いつもなら行かない道を1本だけ通ってみる（安全な範囲で）","needSearch":false,"difficulty":2,"timeRisk":"mid"}
 ,
@@ -226,8 +226,8 @@
   {"id":"b_place_shopping_street","text":"買い物できそうな通りを検索して“ウィンドウショッピング”する（買わなくてOK）","needSearch":true,"difficulty":3,"timeRisk":"mid"},
   {"id":"b_place_old_town","text":"古い雰囲気の場所を検索して、外観だけでも“時代”を感じる","needSearch":true,"difficulty":4,"timeRisk":"mid"},
   {"id":"b_place_bookstore_sit","text":"本屋を探して、立ち読み/棚眺めで“知の回復”をする（迷惑にならない範囲で）","needSearch":true,"difficulty":3,"timeRisk":"mid"},
-  {"id":"b_place_cafe_outside_only","text":"カフェ/喫茶店を探して外観だけ見て“今日はここ強い”と認定する","needSearch":true,"difficulty":2,"timeRisk":"mid"},
-  {"id":"b_place_shrine_stamp","text":"神社/寺を探して、御朱印っぽい気持ちで入口を眺める（実際に集めなくてOK）","needSearch":true,"difficulty":3,"timeRisk":"mid"},
+  {"id":"b_place_cafe_outside_only","text":"カフェ/喫茶店を探して外観だけ見て“強い”と思う店を探す","needSearch":true,"difficulty":2,"timeRisk":"mid"},
+  {"id":"b_place_shrine_stamp","text":"神社/寺を探して、御朱印を探す（なければ無理に集めなくてOK）","needSearch":true,"difficulty":3,"timeRisk":"mid"},
 
   {"id":"b_place_two_candidates","text":"行き先候補を2つ検索して、最後は直感で1つに決める","needSearch":true,"difficulty":3,"timeRisk":"mid"},
   {"id":"b_food_two_candidates","text":"食べ物候補を2つ検索して、最後は直感で1つに決める","needSearch":true,"difficulty":3,"timeRisk":"high"},
