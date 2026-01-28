@@ -13,7 +13,7 @@
   {"id":"a_photo_text_5","text":"文字が入った風景を写真で5枚集める","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_letters_10","text":"文字が写る写真を10枚撮って文章をつくる（看板/注意書きOK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_round_5","text":"かわいいものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_square_5","text":"四角くてカッコいいいものを5個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_square_5","text":"四角くてカッコいいいものを4個見つけて写真を撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_triangle_5","text":"御当地っぽいものを5個集める（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_pattern_5","text":"模様があるもの（ドット/ストライプ/格子）を5種類集める（写真OK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_door_3","text":"店のドアを3つ撮る（家じゃなく“店”優先）","needSearch":false,"difficulty":2,"timeRisk":"low"},
@@ -93,8 +93,8 @@
   {"id":"a_photo_theme_gold","text":"“金っぽい”をテーマに写真を3枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_theme_vermilion","text":"“朱っぽい”をテーマに写真を3枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_photo_theme_white","text":"“白っぽい”をテーマに写真を3枚撮る","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_theme_typo","text":"“文字”をテーマに写真を5枚撮る（フォント重点）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_photo_theme_geometry","text":"“幾何学（線/丸/格子）”をテーマに写真を5枚撮る","needSearch":false,"difficulty":3,"timeRisk":"mid"},
+  {"id":"a_photo_theme_typo","text":"“変な文字”をテーマに写真を3枚撮る（フォント重点）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_photo_theme_geometry","text":"“幾何学（線/丸/格子）”をテーマに写真を3枚撮る","needSearch":false,"difficulty":3,"timeRisk":"mid"},
 
   {"id":"a_observe_three_good_points","text":"この街の“良いところ”を3つだけ見つける（心の中で）","needSearch":false,"difficulty":1,"timeRisk":"low"},
   {"id":"a_observe_three_weird_points","text":"この街の“変なところ”を3つだけ見つける（悪口じゃなく観察）","needSearch":false,"difficulty":2,"timeRisk":"low"},
@@ -105,7 +105,7 @@
   {"id":"a_roleplay_shrine_priest","text":"神主ごっこ：背筋を正す瞬間を3回作る（心の中で）","needSearch":false,"difficulty":1,"timeRisk":"low"},
   {"id":"a_roleplay_monster_tamer","text":"モンスターテイマーごっこ：街の“強そうな看板”を捕獲する（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_roleplay_tour_guide","text":"ガイドごっこ：今いる場所を“名所”として30秒で紹介する（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_roleplay_haiku","text":"俳句ごっこ：景色を5-7-5でまとめようとする（完成しなくてOK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
+  {"id":"a_roleplay_haiku","text":"俳句ごっこ：今の景色を5-7-5でまとめる（完成しなくてOK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_roleplay_album_title","text":"アルバムタイトルごっこ：今日の散歩のタイトルを1つ付ける","needSearch":false,"difficulty":2,"timeRisk":"low"}
 ,
   {"id":"a_walk_find_3_signs","text":"看板を3つ見つけるまで歩く（見つけたら達成）","needSearch":false,"difficulty":2,"timeRisk":"low"},
@@ -126,10 +126,10 @@
   {"id":"a_photo_series_3_stairs","text":"“階段”だけを3枚撮ってミニ写真集にする（安全優先）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
   {"id":"a_photo_series_3_shadows","text":"“影”だけを3枚撮ってミニ写真集にする","needSearch":false,"difficulty":2,"timeRisk":"low"},
 
-  {"id":"a_roleplay_city_planner","text":"都市計画ごっこ：『ここにベンチ置いてほしい』場所を1つ選ぶ（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_roleplay_game_master","text":"GMごっこ：次の“イベント”を1つ予告してから歩く（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_roleplay_city_planner","text":"都市計画ごっこ：『ここにこれ置いてあるのおかしい』場所を1つ選ぶ（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_roleplay_game_master","text":"GMごっこ：次の休みの“イベント”を1つ決める（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_roleplay_detective_casefile","text":"探偵ごっこ：『事件ファイル名』を付ける（例：消えた自販機）","needSearch":false,"difficulty":2,"timeRisk":"low"},
-  {"id":"a_roleplay_museum_caption","text":"美術館ごっこ：目の前の景色にキャプションを付ける（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
+  {"id":"a_roleplay_museum_caption","text":"美術館ごっこ：目の前の景色に架空の題名を付ける（心の中）","needSearch":false,"difficulty":2,"timeRisk":"low"},
   {"id":"a_roleplay_radio","text":"ラジオごっこ：30秒だけ一人喋りをする（声に出さなくてOK）","needSearch":false,"difficulty":3,"timeRisk":"mid"},
 
   {"id":"a_game_bingo_3","text":"散歩ビンゴ：『赤/丸/文字』を揃える（写真OK）","needSearch":false,"difficulty":2,"timeRisk":"low"},
