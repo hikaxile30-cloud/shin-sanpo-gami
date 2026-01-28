@@ -1,5 +1,346 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>真さんぽ神</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#8B1E1E">
+  <style>
+    :root{
+      --bg:#f6f1e3; --paper:#fffaf0; --ink:#1a1a1a;
+      --accent:#8B1E1E; --gold:#c9a227;
+      --shadow:0 10px 30px rgba(0,0,0,.12);
+      --radius:18px;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(201,162,39,.25), transparent 55%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(139,30,30,.18), transparent 60%),
+                  var(--bg);
+      color:var(--ink);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(246,241,227,.92), rgba(246,241,227,.60));
+      border-bottom:1px solid rgba(0,0,0,.06);
+      padding:14px 16px 10px;
+    }
+    .titleRow{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .appTitle{
+      font-weight:800; letter-spacing:.08em;
+      display:flex; align-items:baseline; gap:10px;
+    }
+    .appTitle .name{font-size:18px}
+    .appTitle .sub{font-size:12px; color:rgba(0,0,0,.55)}
+    .pill{
+      border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.65);
+      padding:8px 10px; border-radius:999px;
+      font-size:12px;
+    }
+
+    main{max-width:720px; margin:0 auto; padding:16px 16px 96px;}
+    .tabs{display:flex; gap:10px; margin:12px 0 10px;}
+    .tab{
+      flex:1; text-align:center; padding:10px 12px;
+      border-radius:999px; border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.55); cursor:pointer; user-select:none;
+      font-weight:700;
+    }
+    .tab.active{background:rgba(139,30,30,.10); border-color: rgba(139,30,30,.25); color:var(--accent)}
+    .panel{display:none}
+    .panel.active{display:block}
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,250,240,.95), rgba(255,255,255,.85));
+      border:1px solid rgba(0,0,0,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 140px at 10% 0%, rgba(201,162,39,.22), transparent 55%),
+                  radial-gradient(500px 140px at 90% 10%, rgba(139,30,30,.16), transparent 55%);
+      pointer-events:none;
+    }
+    .cardInner{position:relative}
+    .oracle{
+      font-weight:800; letter-spacing:.06em;
+      color:rgba(0,0,0,.75);
+      margin:0 0 6px;
+    }
+    .oracleHint{margin:0 0 12px; color:rgba(0,0,0,.55); font-size:13px}
+    .result{
+      white-space:pre-wrap;
+      font-size:18px;
+      line-height:1.5;
+      padding:14px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.75);
+      border:1px solid rgba(0,0,0,.08);
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      transform: translateY(8px);
+      opacity:.0;
+    }
+    .result.show{transform: translateY(0); opacity:1}
+    .result.glow{box-shadow:0 0 0 3px rgba(201,162,39,.20), 0 14px 34px rgba(0,0,0,.16)}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+    .chip{
+      font-size:12px; padding:7px 10px; border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.70);
+    }
+    .chip.red{border-color: rgba(139,30,30,.25); background: rgba(139,30,30,.08); color: var(--accent)}
+    .chip.gold{border-color: rgba(201,162,39,.30); background: rgba(201,162,39,.10)}
+    .btnRow{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap}
+    button{
+      appearance:none; border:0; cursor:pointer;
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:800;
+      letter-spacing:.04em;
+      transition: transform .08s ease, filter .15s ease;
+    }
+    button:active{transform: scale(.98)}
+    .btnPrimary{background: linear-gradient(180deg, #9b2424, #7f1a1a); color:#fff}
+    .btnGhost{background: rgba(255,255,255,.70); border:1px solid rgba(0,0,0,.10)}
+    .btnGold{background: linear-gradient(180deg, #d8b34a, #bf9b2b); color:#2a1f00}
+
+    .listCard{margin-top:12px}
+    ul{list-style:none; padding:0; margin:10px 0 0}
+    .item{
+      border:1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.70);
+      border-radius:14px;
+      padding:12px 12px;
+      margin-bottom:10px;
+    }
+    .meta{margin-top:6px; font-size:12px; color:rgba(0,0,0,.60)}
+    .toast{
+      position:fixed; left:50%; bottom:86px; transform:translateX(-50%);
+      background:rgba(0,0,0,.78); color:#fff;
+      padding:10px 12px; border-radius:999px;
+      font-weight:700; font-size:13px;
+      opacity:0; pointer-events:none;
+      transition: opacity .22s ease, transform .22s ease;
+      z-index:50;
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+    .bottomNav{
+      position:fixed; left:0; right:0; bottom:0;
+      background: rgba(246,241,227,.92);
+      border-top:1px solid rgba(0,0,0,.08);
+      padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+      display:flex; gap:10px; justify-content:center;
+      z-index:20;
+      backdrop-filter: blur(10px);
+    }
+    .navBtn{
+      flex:1; max-width:220px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.65);
+      padding:10px 12px;
+      font-weight:800;
+    }
+    .bigText .result{font-size:26px}
+    .bigText .chip{font-size:14px}
+    /* confetti */
+    .confetti{
+      position:fixed; inset:-10px 0 auto 0;
+      pointer-events:none; z-index:60;
+    }
+    .confetti i{
+      position:absolute; top:-20px;
+      width:10px; height:16px; border-radius:3px;
+      opacity:.95;
+      animation: fall 1100ms linear forwards;
+      transform: rotate(0deg);
+    }
+    @keyframes fall{
+      to{ transform: translateY(110vh) rotate(720deg); opacity:0.9; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="titleRow">
+    <div class="appTitle">
+      <div class="name">真さんぽ神</div>
+      <div class="sub">WHERE × WHAT</div>
+    </div>
+    <div class="pill" id="ratioPill">電車30% / バス15% / 検索50%</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabNow">お題</div>
+    <div class="tab" id="tabHistory">履歴</div>
+  </div>
+</header>
+
+<main>
+  <section class="panel active" id="panelNow">
+    <div class="card">
+      <div class="cardInner">
+        <p class="oracle" id="oracleLine">よし。今日の散歩、引いてみるか。</p>
+        <p class="oracleHint" id="oracleHint">「お題を引く」で神託が降りる</p>
+
+        <div class="result show" id="result">まだお題がありません。「お題を引く」を押してください。</div>
+        <div class="chips" id="chips"></div>
+
+        <div class="btnRow">
+          <button class="btnPrimary" id="btnRoll">お題を引く</button>
+          <button class="btnGold" id="btnReroll">引き直す</button>
+          <button class="btnGhost" id="btnBig">デカ文字</button>
+        </div>
+
+        <p class="oracleHint" style="margin-top:14px">
+          地図は使いません。必要ならGoogleマップ等で自分で検索してOK。<br>
+          電車系30%／バス15%／検索あり50%寄せ／銭湯はたまに（連続しにくい）
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panelHistory">
+    <div class="card listCard">
+      <div class="cardInner">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+          <div>
+            <div style="font-weight:900; letter-spacing:.06em">履歴（直近20件）</div>
+            <div class="oracleHint" id="historyHint">保存: 0件</div>
+          </div>
+          <button class="btnGhost" id="btnClear">履歴クリア</button>
+        </div>
+        <ul id="historyList"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="bottomNav">
+  <button class="navBtn" id="navRoll">お題を引く</button>
+  <button class="navBtn" id="navToHistory">履歴を見る</button>
+</div>
+
+<div class="toast" id="toast">OK</div>
+
+<script>
+(function registerSW(){
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", async () => {
+    try{ await navigator.serviceWorker.register("./sw.js"); }catch(e){}
+  });
+})();
+
+const TRAIN_RATIO = 0.30;
+const BUS_RATIO   = 0.15; // ← 0.15 ON
+const NEED_SEARCH_TARGET = 0.50;
+const HISTORY_MAX = 20;
+const KEY_HISTORY = "ssg_history_v2_json";
+const KEY_BIG = "ssg_bigtext_v1";
+
+/* ===== utils ===== */
+const rng = (n) => Math.floor(Math.random() * n);
+const pickOne = (arr) => arr[rng(arr.length)];
+const $ = (id) => document.getElementById(id);
+
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(KEY_HISTORY) || "[]"); }catch(e){ return []; }
+}
+function saveHistory(list){
+  localStorage.setItem(KEY_HISTORY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+}
+function loadBig(){ return localStorage.getItem(KEY_BIG) === "1"; }
+function saveBig(on){ localStorage.setItem(KEY_BIG, on ? "1":"0"); }
+
+function recentNeedSearchRatio(hist){
+  const h = (hist||[]).slice(0, 20);
+  if(!h.length) return 0.5;
+  const t = h.filter(x => x && x.what_need_search).length;
+  return t / h.length;
+}
+function recentHasHigh(hist){
+  const h = (hist||[]).slice(0, 10);
+  return h.some(x => x && x.what_time_risk === "high");
+}
+function diffCounts(hist){
+  const h = (hist||[]).slice(0, 20);
+  const m = new Map();
+  for(const e of h){
+    const d = e?.what_difficulty;
+    if(typeof d === "number") m.set(d, (m.get(d)||0)+1);
+  }
+  return m;
+}
+
+/* ===== confetti ===== */
+function confettiBurst(){
+  const wrap = document.createElement("div");
+  wrap.className = "confetti";
+  const colors = ["#c9a227","#8b1e1e","#ffffff","#1a1a1a","#f0d9a0"];
+  const n = 22;
+  for(let i=0;i<n;i++){
+    const el = document.createElement("i");
+    const x = Math.random() * 100;
+    el.style.left = x + "vw";
+    el.style.background = colors[rng(colors.length)];
+    el.style.animationDuration = (900 + Math.random()*700) + "ms";
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.opacity = (0.75 + Math.random()*0.25).toFixed(2);
+    el.style.width = (8 + Math.random()*6) + "px";
+    el.style.height = (10 + Math.random()*10) + "px";
+    wrap.appendChild(el);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(()=> wrap.remove(), 1600);
+}
+
+/* ===== UI ===== */
+const $result = $("result");
+const $chips = $("chips");
+const $historyList = $("historyList");
+const $historyHint = $("historyHint");
+const $oracleLine = $("oracleLine");
+const $oracleHint = $("oracleHint");
+const $toast = $("toast");
+const $tabNow = $("tabNow");
+const $tabHistory = $("tabHistory");
+const $panelNow = $("panelNow");
+const $panelHistory = $("panelHistory");
+const $btnBig = $("btnBig");
+
+let history = loadHistory();
+
+function toast(msg){
+  $toast.textContent = msg;
+  $toast.classList.add("show");
+  setTimeout(()=> $toast.classList.remove("show"), 900);
+}
+function setTab(which){
+  const now = which === "now";
+  $tabNow.classList.toggle("active", now);
+  $tabHistory.classList.toggle("active", !now);
+  $panelNow.classList.toggle("active", now);
+  $panelHistory.classList.toggle("active", !now);
+}
+function renderChips(where, what){
+  const chips = [
+    {t: where.isTrain ? "電車" : (where.isBus ? "バス" : "徒歩"), cls: where.isTrain ? "red" : "gold"},
+    {t: what.needSearch ? "検索あり" : "検索なし", cls: what.needSearch ? "red" : ""},
+    {t: "難易度 " + what.difficulty, cls: ""},
+    {t: "リスク " + (what.timeRisk||"low"), cls: ""}
   ];
-  $chips.innerHTML = chips.map(c => `<span class="chip ${c.red ? "red":""}">${c.t}</span>`).join("");
+  $chips.innerHTML = chips.map(c => `<span class="chip ${c.cls||""}">${c.t}</span>`).join("");
 }
 function renderHistory(){
   const list = history.slice(0, HISTORY_MAX);
@@ -11,15 +352,9 @@ function renderHistory(){
     const title = document.createElement("div");
     title.textContent = `${e.where_text}\n→ ${e.what_text}`;
     title.style.whiteSpace = "pre-wrap";
-
     const meta = document.createElement("div");
     meta.className = "meta";
-    meta.innerHTML = `
-      <span>検索:${e.what_need_search ? "あり" : "なし"}</span>
-      <span>難易度:${e.what_difficulty}</span>
-      <span>電車:${e.where_is_train ? "あり" : "なし"}</span>
-      <span>リスク:${e.what_time_risk}</span>
-    `;
+    meta.textContent = `検索:${e.what_need_search?"あり":"なし"} / 難易度:${e.what_difficulty} / 電車:${e.where_is_train?"あり":"なし"} / リスク:${e.what_time_risk} / ${new Date(e.created_at).toLocaleString()}`;
     li.appendChild(title);
     li.appendChild(meta);
     $historyList.appendChild(li);
@@ -31,196 +366,162 @@ function oracleSay(line, hint){
 }
 function revealResult(){
   $result.classList.remove("show");
-  $result.classList.add("reveal");
-  requestAnimationFrame(() => requestAnimationFrame(() => $result.classList.add("show")));
+  requestAnimationFrame(()=> requestAnimationFrame(()=> $result.classList.add("show")));
 }
 function flashResult(){
   $result.classList.add("glow");
-  setTimeout(() => $result.classList.remove("glow"), 420);
+  setTimeout(()=> $result.classList.remove("glow"), 420);
 }
 
-/* ========= DATA ARRAYS WILL BE IN PART 2/3 and 3/3 ========= */
-  {id:"w_toward_quiet_10", text:"人が少なそうな方へ10分歩いて", isTrain:false, difficulty:2},
+/* ===== data load (JSON) ===== */
+let WHERE = [];
+let WHAT = [];
 
-  {id:"w_straight_until_deadend", text:"なるべく曲がらず、行き止まりか大きい道に当たるまで歩いて（最大15分）", isTrain:false, difficulty:3},
-  {id:"w_find_bridge_then_start", text:"橋か踏切を見つけるまで歩いて、見つけた場所から始めて", isTrain:false, difficulty:3},
-  {id:"w_find_bench_then_start", text:"ベンチを1つ見つけるまで歩いて、見つけた場所から始めて", isTrain:false, difficulty:2},
-  {id:"w_find_vending_then_10", text:"自販機を1台見つけたら、そこから10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_find_red_then_10", text:"赤いものを見つけたら、そこから10分歩いて", isTrain:false, difficulty:3},
-  {id:"w_find_blue_then_10", text:"青いものを見つけたら、そこから10分歩いて", isTrain:false, difficulty:3},
-  {id:"w_find_tall_building_10", text:"背の高い建物が見える方へ10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_find_old_sign_10", text:"古そうな看板がある方へ10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_find_new_building_10", text:"新しそうな建物がある方へ10分歩いて", isTrain:false, difficulty:2},
+async function loadData(){
+  const [w1,w2] = await Promise.all([
+    fetch("./where.json", {cache:"no-store"}).then(r => r.json()),
+    fetch("./what.json", {cache:"no-store"}).then(r => r.json()),
+  ]);
+  WHERE = w1;
+  WHAT  = w2;
+}
 
-  /* --- rules / playful (約45) --- */
-  {id:"w_rule_no_right_10", text:"右折禁止で10分歩いて（左か直進だけ）", isTrain:false, difficulty:3},
-  {id:"w_rule_no_left_10", text:"左折禁止で10分歩いて（右か直進だけ）", isTrain:false, difficulty:3},
-  {id:"w_rule_only_right_12", text:"12分間、右に曲がれる時は右を優先して歩いて", isTrain:false, difficulty:4},
-  {id:"w_rule_only_left_12", text:"12分間、左に曲がれる時は左を優先して歩いて", isTrain:false, difficulty:4},
-  {id:"w_rule_coinflip_10", text:"角が出るたびにコイントス（表=右/裏=左）で10分歩いて", isTrain:false, difficulty:4},
-  {id:"w_rule_turn_every_3min", text:"3分歩くたびに、次の角で必ず曲がって10〜12分歩いて", isTrain:false, difficulty:4},
-  {id:"w_rule_one_alley_required", text:"路地に1回だけ入ってから、元の道に戻って8分歩いて", isTrain:false, difficulty:3},
-  {id:"w_rule_color_hunt_12", text:"最初に見えた“好きな色”を決めて、その色の看板がある方へ12分歩いて", isTrain:false, difficulty:4},
-  {id:"w_rule_follow_smell_10", text:"いい匂いがする方向へ10分歩いて（安全な範囲で）", isTrain:false, difficulty:4},
-  {id:"w_rule_follow_music_8", text:"音楽が聞こえる方向へ8分歩いて（遠ざかってもOK）", isTrain:false, difficulty:4},
-  {id:"w_rule_3rd_corner_turn", text:"3つ目の角で必ず曲がって、そのまま10分歩いて", isTrain:false, difficulty:3},
-  {id:"w_rule_follow_numbers", text:"数字が書いてある看板（例: 24h）を見つけたら、その方向へ8分歩いて", isTrain:false, difficulty:4},
+/* ===== pickers ===== */
+function isBusWhere(w){
+  const s = (w.id||"") + " " + (w.text||"");
+  return /\bbus\b/i.test(s) || s.includes("バス");
+}
 
-  {id:"w_out_and_back_10", text:"5分進んで、別ルートで5分戻ってきて", isTrain:false, difficulty:3},
-  {id:"w_triangle_walk", text:"三角形を描くつもりで、3回曲がって10〜15分歩いて", isTrain:false, difficulty:4},
-  {id:"w_square_walk", text:"四角形を描くつもりで、4回曲がって10〜15分歩いて", isTrain:false, difficulty:4},
+function pickWhere(hist){
+  const base = WHERE.map(w => ({...w, isBus: !w.isTrain && isBusWhere(w)}));
+  const trainPool = base.filter(w => w.isTrain);
+  const busPool   = base.filter(w => w.isBus);
+  const walkPool  = base.filter(w => !w.isTrain && !w.isBus);
 
-  /* --- start points (約20) --- */
-  {id:"w_start_station_10", text:"いちばん近い駅（またはバス停）を起点にして10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_start_station_12", text:"いちばん近い駅（またはバス停）を起点にして12分歩いて", isTrain:false, difficulty:2},
-  {id:"w_start_conbini_10", text:"いちばん近いコンビニを起点にして10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_start_conbini_12", text:"いちばん近いコンビニを起点にして12分歩いて", isTrain:false, difficulty:2},
-  {id:"w_start_super_10", text:"いちばん近いスーパーを起点にして10分歩いて", isTrain:false, difficulty:2},
-  {id:"w_start_park", text:"近くの公園を1つ探して、入口から始めて", isTrain:false, difficulty:2},
-  {id:"w_start_shrine", text:"近くの神社/寺を1つ探して、入口から始めて", isTrain:false, difficulty:2},
-  {id:"w_start_shotengai", text:"近くの商店街を探して、入口っぽい所から始めて", isTrain:false, difficulty:3},
-  {id:"w_start_cafe", text:"近くの喫茶店/カフェを探して、店の前から始めて", isTrain:false, difficulty:2},
-  {id:"w_start_bookstore", text:"近くの本屋を探して、入口から始めて", isTrain:false, difficulty:2},
-  {id:"w_start_bridge", text:"近くの橋を探して、橋のたもとから始めて", isTrain:false, difficulty:3},
-  {id:"w_start_bakery", text:"近くのパン屋を探して、店の前から始めて", isTrain:false, difficulty:2},
-  {id:"w_start_wagashi", text:"近くの和菓子屋を探して、店の前から始めて", isTrain:false, difficulty:3},
-  {id:"w_start_kissaten_nonchain", text:"近くの喫茶店（チェーン以外優先）を探して、店の前から始めて", isTrain:false, difficulty:3},
-  {id:"w_start_sentou_outside", text:"近くの銭湯を探して、外観を見たところから始めて", isTrain:false, difficulty:4},
-];/* ========= WHAT (≈200) =========
-   方針：検索なし/ありを半々寄せ。飲食/買い物/写真/観察をバランス。
-   ユーモア強度2：ごっこ・縛り・心の中ミッション多め（安全）。
-*/
-const WHAT = [
-  /* --- 検索なし (100) 写真・観察・行動・買い物 --- */
-  {id:"a_photo_1", text:"気になったものを1枚写真に撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_3", text:"気になったものを3枚写真に撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_5", text:"気になったものを5枚写真に撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_red_3", text:"「赤」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_blue_3", text:"「青」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_green_3", text:"「緑」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_yellow_3", text:"「黄色」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_shadow_3", text:"「影」をテーマに写真を3枚撮る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_photo_reflection_2", text:"反射（ガラス/水たまり）を狙って写真を2枚撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_reflection_5", text:"反射（ガラス/水たまり/金属）を5つ集めて写真を撮る", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_photo_text_5", text:"文字が入った風景を写真で5枚集める", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_letters_10", text:"文字が写る写真を10枚撮る（看板/注意書きOK）", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_photo_round_5", text:"丸いものを5個見つけて写真を撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_square_5", text:"四角いものを5個見つけて写真を撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_triangle_5", text:"三角っぽいものを5個集める（写真OK）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_pattern_5", text:"模様（ドット/ストライプ/格子）を5つ集める（写真OK）", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_photo_texture_5", text:"質感（つるつる/ざらざら/木/金属）を5つ集めて写真を撮る", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_photo_door_3", text:"店のドアを3つ撮る（家じゃなく店優先）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_window_3", text:"窓を3つ撮る（反射が写ったら当たり）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_stairs_2", text:"階段を2つ撮る（上から/下からどちらか）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_sign_5", text:"看板を5枚撮る（文字が面白いと加点）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_no_people_1", text:"人が写らない写真を1枚撮る（難しければ遠景で）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_best_1_edit", text:"今日のベスト写真を1枚選んで、軽く編集する", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_same_color_7", text:"同じ色を7個集める（写真でもOK）", needSearch:false, difficulty:2, timeRisk:"mid"},
-  {id:"a_photo_gold_3", text:"金色っぽいものを3つ集めて写真を撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_vermilion_white", text:"“朱×白”っぽい写真を1枚撮る（神社感）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_before_after", text:"同じ場所を近い/遠いで2枚撮る", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_lowangle_1", text:"ローアングルで1枚撮る（安全第一）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_highangle_1", text:"少し高い目線で1枚撮る（無理はしない）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_photo_monochrome_3", text:"モノクロっぽく見える写真を3枚撮る", needSearch:false, difficulty:2, timeRisk:"low"},
+  const r = Math.random();
+  if(trainPool.length && r < TRAIN_RATIO) return pickOne(trainPool);
 
-  {id:"a_observe_cute_sign", text:"今日いちばん“かわいい看板”を決める", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_strong_shopname", text:"今日いちばん“強そうな店名”を1つ見つける", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_best_smell", text:"今日いちばん“いい匂いがした場所”を1つ決める", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_best_font", text:"今日いちばん良いフォントの看板を決める", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_best_slogan", text:"今日いちばん刺さったキャッチコピーを1つメモする", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_observe_mysterious_sign", text:"意味が分からない看板を1つ見つける（写真OK）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_observe_kanji_one", text:"かっこいい漢字を1文字だけ見つける（看板/注意書き）", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_logo_mascot", text:"ゆるキャラっぽいロゴを1つ見つける", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_observe_number_lucky", text:"ゾロ目（11/22/777など）を1回見つけるまで歩く（最大15分）", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_observe_animal_3", text:"動物っぽいモチーフ（猫/犬/鳥など）を3つ見つける", needSearch:false, difficulty:2, timeRisk:"low"},
+  const busGate = TRAIN_RATIO + BUS_RATIO;
+  if(busPool.length && r < busGate) return pickOne(busPool);
 
-  {id:"a_roleplay_detective", text:"探偵ごっこ：怪しい（面白い）店を1つ“発見”する", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_roleplay_reporter", text:"記者ごっこ：今日の散歩の見出しを1本作る（心の中で）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_roleplay_architect", text:"建築家ごっこ：好きな建物を1つ選んで“推しポイント”を3つ考える", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_roleplay_critic", text:"評論家ごっこ：看板を1つ選んで10点満点で採点する", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_roleplay_narrator", text:"ナレーターごっこ：3分だけ頭の中で実況しながら歩く", needSearch:false, difficulty:3, timeRisk:"mid"},
+  if(walkPool.length) return pickOne(walkPool);
+  const nonTrain = base.filter(w => !w.isTrain);
+  return pickOne(nonTrain.length ? nonTrain : base);
+}
 
-  {id:"a_walk_no_music_15", text:"15分だけイヤホン無しで歩く", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_walk_silent_5", text:"5分だけ無言で歩いて、音を聞く", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_walk_stop_3", text:"「止まる→見る→進む」を3回だけ丁寧にやる", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_walk_no_phone_10", text:"10分だけスマホを見ないで歩く", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_walk_detour_one", text:"いつもなら行かない道を1本だけ通ってみる（安全な範囲）", needSearch:false, difficulty:2, timeRisk:"mid"},
-  {id:"a_walk_steps_300", text:"300歩だけ数えて歩く（数え終わったら通常へ）", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_rest_2min", text:"どこか安全な場所で2分休憩して深呼吸する", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_rest_5min", text:"5分だけ座って休む（可能なら）", needSearch:false, difficulty:1, timeRisk:"low"},
+function pickWhat(hist){
+  const h = Array.isArray(hist) ? hist : [];
+  const EXCLUDE_N = 20;
 
-  {id:"a_buy_drink_unusual", text:"自販機で「普段絶対買わない飲み物」を1本買う", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_buy_snack_unusual", text:"コンビニで「普段買わないお菓子」を1つ買う", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_buy_new_flavor", text:"普段買わない味のものを1つ買う（飲み物/お菓子OK）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_buy_small_luxury", text:"“ちいさな贅沢”を1つ買う（〜1000円目安）", needSearch:false, difficulty:3, timeRisk:"mid"},
-  {id:"a_buy_mystery_choice", text:"直感で“謎”な商品を1つ選ぶ（買う/買わない自由）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_buy_one_word", text:"パッケージの言葉に惹かれたものを1つ選ぶ（買う/買わない自由）", needSearch:false, difficulty:2, timeRisk:"low"},
+  const ban20 = new Set(h.slice(0, EXCLUDE_N).map(x => x?.what_id).filter(Boolean));
 
-  {id:"a_game_shrine_pose", text:"（心の中で）“神社に来たつもり”で背筋を正す瞬間を3回作る", needSearch:false, difficulty:1, timeRisk:"low"},
-  {id:"a_game_boss_battle", text:"“ボスっぽい建物”を1つ見つけて、勝手にBGMを付ける（心の中）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_game_sidequest", text:"“サブクエスト”を1つ作って達成する（例: 看板1枚撮る）", needSearch:false, difficulty:2, timeRisk:"low"},
-  {id:"a_game_loot", text:"“戦利品”として写真を1枚だけ持ち帰る（今日の象徴）", needSearch:false, difficulty:2, timeRisk:"low"},
+  const r = recentNeedSearchRatio(h);
+  const wantNeedSearch = (r < NEED_SEARCH_TARGET);
 
-  /* --- 検索あり (100) 飲食・買い物・写真スポット・場所 --- */
-  {id:"b_food_nearest_meal", text:"いちばん近い飲食店で食事する（ジャンル自由）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_nearest_cafe", text:"いちばん近いカフェ/喫茶店で1杯飲む", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_sweets", text:"近くで甘いもの（ケーキ/和菓子/アイス）を1つ食べる", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_takeout", text:"近くでテイクアウトを1つ買う（食べるのは後でもOK）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_takeout_park", text:"テイクアウトを買って、公園か広い場所で食べる（無理なら持ち帰り）", needSearch:true, difficulty:3, timeRisk:"high"},
-  {id:"b_food_bakery_1", text:"近くのパン屋を探してパンを1個買う", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_bakery_recommend", text:"近くのパン屋で“おすすめっぽいパン”を1つ買う", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_wagashi_1", text:"近くの和菓子屋を探して和菓子を1個買う", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_food_kissaten_coffee", text:"近くの喫茶店でコーヒー/紅茶を1杯飲む", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_food_noodle", text:"近くの麺（そば/うどん/ラーメン等）を食べる（量は軽めでもOK）", needSearch:true, difficulty:3, timeRisk:"high"},
-  {id:"b_food_teishoku_basic", text:"近くのごはん屋で“定番っぽい定食”を食べる", needSearch:true, difficulty:3, timeRisk:"high"},
-  {id:"b_food_teishoku_daily", text:"近くの定食屋で日替わりっぽいものを頼む", needSearch:true, difficulty:3, timeRisk:"high"},
-  {id:"b_food_machichuka_one", text:"近くの町中華で一品だけ食べる（軽めでOK）", needSearch:true, difficulty:3, timeRisk:"high"},
-  {id:"b_food_nonchain_challenge", text:"チェーンじゃない店を1つ探して入る（無理なら外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"mid"},
-  {id:"b_food_seasonal", text:"季節限定/期間限定っぽいものを1つ探して食べる（飲み物でもOK）", needSearch:true, difficulty:4, timeRisk:"mid"},
+  let pool = WHAT.filter(w => w.needSearch === wantNeedSearch && !ban20.has(w.id));
+  if(pool.length < 8) pool = WHAT.filter(w => !ban20.has(w.id));
 
-  {id:"b_food_menu_by_vibes", text:"近くの店で“雰囲気だけで”1品選ぶ（無理なら次善でOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_food_sign_kanban", text:"店頭の看板メニューが一番強い店に入る（無理なら外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"mid"},
-  {id:"b_food_drink_color", text:"飲み物を“今日は朱/金/白”のどれかで選ぶ", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_food_sweets_takeout", text:"甘いものをテイクアウトして“勝利”を味わう", needSearch:true, difficulty:2, timeRisk:"mid"},
+  // A救済: 候補0の時だけ15に緩める
+  if(pool.length === 0){
+    const ban15 = new Set(h.slice(0, 15).map(x => x?.what_id).filter(Boolean));
+    pool = WHAT.filter(w => !ban15.has(w.id));
+  }
+  if(pool.length === 0) pool = WHAT.slice();
 
-  {id:"b_shop_bookstore_cover", text:"近くの本屋で“表紙が刺さる本”を1冊探す（購入自由）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_shop_bookstore_unknown", text:"近くの本屋で「知らない分野」の本を1冊探す（購入は任意）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_shop_book_one_sentence", text:"本屋で“1文だけ”読んで刺さった本をメモ（買わなくてOK）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_shop_zakka", text:"近くの雑貨屋で小さなお土産を探す（購入は任意）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_zakka_small", text:"近くの雑貨屋で“手のひらサイズの物”を探す（買わなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_one_color", text:"雑貨屋で“1色縛り”で小物を探す（買わなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_flowers", text:"近くの花屋で季節の花を1輪探す（購入は任意）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_flower_view", text:"近くの花屋で“季節っぽい花”を眺める（買わなくてOK）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_shop_recycle", text:"近くの古本屋/リサイクルショップに入る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_reuse_walkthrough", text:"近くの古本屋/リサイクルショップに入って1周する（買わなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_shop_weird_stationery", text:"文房具屋/100均で“謎に便利そうな道具”を探す（買わなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
+  if(recentHasHigh(h)){
+    const filtered = pool.filter(w => (w.timeRisk||"low") !== "high");
+    if(filtered.length) pool = filtered;
+  }
 
-  {id:"b_photo_park_season", text:"近くの公園へ行って季節っぽい写真を撮る", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_photo_park_green", text:"近くの公園へ行って“緑が多い写真”を1枚撮る", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_photo_water_reflection", text:"近くの川/水辺へ行って反射の写真を撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_bridge_lines", text:"近くの橋へ行って“線”が気持ちいい写真を1枚撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_shrine_gate", text:"近くの神社/寺へ行って入口（鳥居/山門）を撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_underpass_shadow", text:"近くのガード下/高架下へ行って陰影の写真を撮る", needSearch:true, difficulty:4, timeRisk:"mid"},
-  {id:"b_photo_shotengai_signs", text:"近くの商店街で“看板”を10枚撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_shotengai_letters", text:"近くの商店街で“文字の写真”を10枚撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_statue", text:"近くの像/オブジェを探して写真を撮る", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_viewpoint", text:"景色が良さそうな場所を探して1枚撮る（遠ければ妥協OK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_photo_old_shopfront", text:"古い店構えっぽい外観を探して撮る（中に入らなくてOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
+  const counts = diffCounts(h);
+  const sorted = pool.slice().sort((a,b) => (counts.get(a.difficulty)||0) - (counts.get(b.difficulty)||0));
+  const topK = sorted.slice(0, Math.min(10, sorted.length));
+  return pickOne(topK);
+}
 
-  {id:"b_place_shrine_visit", text:"近くの神社/寺に行って手を合わせる（静かに）", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_place_park_rest", text:"近くの公園で3分だけ休む", needSearch:true, difficulty:2, timeRisk:"mid"},
-  {id:"b_place_library_outside", text:"近くの図書館を探して外観を見る（入れるなら入ってOK）", needSearch:true, difficulty:3, timeRisk:"mid"},
-  {id:"b_place_station_stamp", text:"近くの駅（またはバス停）で“旅気分”になる（スタンプがあれば押す）", needSearch:true, difficulty:3, timeRisk:"mid"},
+function roll(kind){
+  const where = pickWhere(history);
+  const what  = pickWhat(history);
 
-  {id:"b_sentou_optional", text:"近くの銭湯を探して、入るかどうかは気分で決める（外観だけでもOK）", needSearch:true, difficulty:4, timeRisk:"high"},
-];$btnBig.addEventListener("click", () => setBig(!document.body.classList.contains("bigText")));
+  $result.textContent = `${where.text}\n→ ${what.text}`;
+  renderChips(where, what);
+  revealResult();
+  flashResult();
 
-/* init */
-renderHistory();
-setTab("now");
-setBig(loadBig());
+  const item = {
+    where_id: where.id,
+    where_text: where.text,
+    where_is_train: !!where.isTrain,
 
-/* close the script/html */
+    what_id: what.id,
+    what_text: what.text,
+    what_need_search: !!what.needSearch,
+    what_difficulty: what.difficulty,
+    what_time_risk: what.timeRisk || "low",
+
+    created_at: new Date().toISOString()
+  };
+
+  history.unshift(item);
+  history = history.slice(0, HISTORY_MAX);
+  saveHistory(history);
+  renderHistory();
+
+  const lines = ["よし。神託が降りた。","迷うな。これが縁だ。","今日はこれでいけ。","運命の散歩、始めよ。","ふむ…これで良い。","……知らんけど。"];
+  const hints = [
+    what.needSearch ? "必要なら検索してよい" : "今日は検索なしでよい",
+    where.isTrain ? "電車を使ってよい" : (where.isBus ? "バスを使ってよい" : "徒歩でよい"),
+    (what.timeRisk === "high") ? "無理はするな（外観だけでも可）" : "気軽に行け"
+  ];
+  oracleSay(pickOne(lines), pickOne(hints));
+  toast(kind === "reroll" ? "引き直し" : "神託！");
+  confettiBurst();
+  setTab("now");
+}
+
+function setBig(on){
+  document.body.classList.toggle("bigText", on);
+  $btnBig.textContent = on ? "デカ文字ON" : "デカ文字";
+  saveBig(on);
+  toast(on ? "デカ文字ON" : "デカ文字OFF");
+}
+
+/* ===== events ===== */
+$("btnRoll").addEventListener("click", () => roll("roll"));
+$("btnReroll").addEventListener("click", () => roll("reroll"));
+$("navRoll").addEventListener("click", () => roll("roll"));
+$("navToHistory").addEventListener("click", () => setTab("history"));
+$tabNow.addEventListener("click", () => setTab("now"));
+$tabHistory.addEventListener("click", () => setTab("history"));
+
+$("btnClear").addEventListener("click", () => {
+  if(!confirm("履歴を全削除します。よろしいですか？")) return;
+  history = [];
+  saveHistory(history);
+  renderHistory();
+  $result.textContent = "履歴を削除しました。「お題を引く」を押してください。";
+  $chips.innerHTML = "";
+  oracleSay("清めた。", "また引け");
+  revealResult();
+  toast("削除");
+});
+
+$btnBig.addEventListener("click", () => setBig(!document.body.classList.contains("bigText")));
+
+/* ===== init ===== */
+(async function init(){
+  try{
+    await loadData();
+    oracleSay("よし。今日の散歩、引いてみるか。", "「お題を引く」で神託が降りる");
+    renderHistory();
+    setTab("now");
+    setBig(loadBig());
+  }catch(e){
+    $result.textContent = "データ読み込みに失敗しました。where.json / what.json の設置を確認してください。";
+    oracleSay("……神託が届かない。", "where.json / what.json を確認");
+    console.error(e);
+  }
+})();
 </script>
 </body>
 </html>
